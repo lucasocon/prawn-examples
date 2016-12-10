@@ -1,1 +1,1 @@
-cd examples && ruby invoice.rb && xdg-open invoice.pdf & cd -
+cd examples && ruby invoice.rb $1 && xdg-open invoice.pdf & cd -

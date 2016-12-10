@@ -1,4 +1,7 @@
 source :rubygems
 
-gem 'prawn', '~> 1.2.1'
-gem 'prawn-table', '~> 0.1.0'
+gem 'awesome_print'
+gem 'faker'
+gem 'prawn'
+gem 'prawn-table'
+gem 'pry'
