@@ -1,0 +1,77 @@
+AllCops:
+  TargetRubyVersion: 2.3
+  Include:
+    - Rakefile
+    - config.ru
+  Exclude:
+    - db/**/*
+    - lib/templates/rails/**/*.rb
+    - bin/*
+    - views/**/*
+    - config/environments/*.rb
+
+Metrics/ModuleLength:
+  Max: 350
+
+Metrics/BlockLength:
+  Max: 256
+
+# Configuration parameters: AllowURI, URISchemes.
+Metrics/LineLength:
+  Max: 140
+
+Metrics/ClassLength:
+  Max: 350
+
+# Configuration parameters: CountComments.
+Metrics/MethodLength:
+  Max: 48
+
+# Missing top-level class documentation comment
+Style/Documentation:
+  Enabled: false
+
+# this enforces to change a == 0 to a.zero? Problem arises when a is null or an expression
+Style/NumericPredicate:
+  Enabled: false
+
+# conflicts with Style/GuardClause in some cases
+Style/MultilineIfModifier:
+  Enabled: false
+
+# rubocop don't want stamping_1, but I like it
+Style/VariableNumber:
+  Enabled: false
+
+# Assignment Branch Condition size for %s is too high. [%.4g/%.4g]
+Metrics/AbcSize:
+  Max: 52
+
+Metrics/CyclomaticComplexity:
+  Max: 12
+
+Metrics/PerceivedComplexity:
+  Max: 12
+
+Rails/OutputSafety:
+  Enabled: false
+
+# Don't auto-correct this!
+Rails/HttpPositionalArguments:
+  Enabled: false
+
+Style/MultilineMethodCallBraceLayout:
+  Enabled: false
+
+Style/MutableConstant:
+  Exclude:
+    - 'spec/**/*.rb'
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+  Exclude:
+    - '*.rb'
+
+Style/IndentArray:
+  Exclude:
+    - 'spec/**/*.rb'

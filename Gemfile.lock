@@ -1,16 +1,19 @@
 GEM
   remote: http://rubygems.org/
   specs:
-    Ascii85 (1.0.1)
-    pdf-reader (0.10.1)
-      Ascii85 (~> 1.0.0)
-    prawn (0.12.0)
-      pdf-reader (>= 0.9.0)
-      ttfunk (~> 1.0.2)
-    ttfunk (1.0.3)
+    pdf-core (0.2.5)
+    prawn (1.2.1)
+      pdf-core (~> 0.2.5)
+      ttfunk (~> 1.2.0)
+    prawn-table (0.1.2)
+    ttfunk (1.2.2)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  prawn
+  prawn (~> 1.2.1)
+  prawn-table (~> 0.1.0)
+
+BUNDLED WITH
+   1.13.6

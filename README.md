@@ -1,15 +1,20 @@
 ## Prawn Examples
 
-A sample of a simple pdf document created using prawn.
+A sample of a pdf invoice created using prawn.  
+I just updated this [repository](https://github.com/fadhlirahim/prawn-examples) from [fadhlirahim](https://github.com/fadhlirahim)
+to current gem and ruby versions
 
 Requirements
 
-ruby 1.9.2
-prawn gem
+* ruby 2.3+
+* gem 'prawn', '~> 1.2.1'
+* gem 'prawn-table', '~> 0.1.0'
 
-Change directory into the examples/ folder 
+Run:
 
-  cd /examples
-  ruby invoice.rb
-  
-And invoice.pdf will be generated
+```
+bundle  
+./run.sh
+```
+
+**invoice.pdf** will be generated in ./examples
