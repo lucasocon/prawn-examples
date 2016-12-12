@@ -6,13 +6,17 @@ require 'prawn'
 require 'date'
 require 'faker'
 
+# disable warning relative a built-in fonts
+Prawn::Font::AFM.hide_m17n_warning = true
+
 def format_currency(currency)
   format('%5.2f', currency) + '€'
 end
 
 EVERY_PAGE_LINES = 20
 LAST_PAGE_LINES = 13
-TOTAL_ITEMS = ARGV[0]&.to_i || 5 # pass total items as an optional parameter
+DEFAULT_ITEM_COUNT = 75
+TOTAL_ITEMS = ARGV[0]&.to_i || DEFAULT_ITEM_COUNT # pass total items as an optional parameter
 
 def calc_this_page_lines(line_count)
   remainder = TOTAL_ITEMS % EVERY_PAGE_LINES
