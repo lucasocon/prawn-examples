@@ -5,6 +5,7 @@ require 'prawn/table'
 require 'prawn'
 require 'date'
 require 'faker'
+require 'pry'
 
 # disable warning relative a built-in fonts
 Prawn::Font::AFM.hide_m17n_warning = true
@@ -13,8 +14,8 @@ def format_currency(currency)
   format('%5.2f', currency) + '€'
 end
 
-EVERY_PAGE_LINES = 20
-LAST_PAGE_LINES = 13
+EVERY_PAGE_LINES = 30
+LAST_PAGE_LINES = 21
 DEFAULT_ITEM_COUNT = 75
 TOTAL_ITEMS = ARGV[0]&.to_i || DEFAULT_ITEM_COUNT # pass total items as an optional parameter
 
@@ -126,9 +127,14 @@ loop do
   item_count += @this_page_lines
   page_items.push(['', '', 'TOTAL INVOICE', @sum_units, '', format_currency(@sum_total)]) if item_count >= TOTAL_ITEMS
   @page_counter += 1
-  @pdf.table page_items, header: true, width: 550 do |t|
+  @pdf.table(page_items, header: true, width: 550, cell_style: { size: 8, height: 17, borders: [:left, :right] }) do |t|
     t.columns(3..5).align = :right
-    t.row(0).style text_color: 'FFFFFF', background_color: '000000'
+    # t.cells.style do |cell|
+    #   cell.height = 12
+    #   cell.style[:size] = 10
+    # end
+    t.row(0).style text_color: 'FFFFFF', background_color: '000000', borders: [:left, :right, :top]
+    t.rows(t.row_length - 1).style borders: [:left, :right, :bottom]
   end
   break if item_count >= TOTAL_ITEMS
 end
