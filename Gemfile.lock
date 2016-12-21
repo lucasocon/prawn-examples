@@ -29,3 +29,6 @@ DEPENDENCIES
   prawn
   prawn-table
   pry
+
+BUNDLED WITH
+   1.13.6
