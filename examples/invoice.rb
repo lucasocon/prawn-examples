@@ -14,8 +14,8 @@ def format_currency(currency)
   format('%5.2f', currency) + '€'
 end
 
-EVERY_PAGE_LINES = 30
-LAST_PAGE_LINES = 21
+EVERY_PAGE_LINES = 43
+LAST_PAGE_LINES = 35
 DEFAULT_ITEM_COUNT = 75
 TOTAL_ITEMS = ARGV[0]&.to_i || DEFAULT_ITEM_COUNT # pass total items as an optional parameter
 
@@ -39,62 +39,107 @@ end
   [
     '5600300' + format('%05d', rand(100_000)),
     "BN5001.#{format('%03d', i)}",
-    Faker::Commerce.product_name,
+    Faker::Commerce.product_name.upcase,
     units,
     format_currency(price),
     format_currency(total)
   ]
 end
+@total_pages = if (TOTAL_ITEMS >= EVERY_PAGE_LINES) && (TOTAL_ITEMS % EVERY_PAGE_LINES > LAST_PAGE_LINES)
+                 (TOTAL_ITEMS.to_f / EVERY_PAGE_LINES).round + 1
+               elsif TOTAL_ITEMS > LAST_PAGE_LINES
+                 2
+               else
+                 1
+               end
+
+@issuer = {
+  name: Faker::Company.name,
+  street_name: Faker::Address.street_name,
+  zip_city: Faker::Address.zip + ' ' + Faker::Address.city,
+  ein: Faker::Company.ein,
+  phone_number: Faker::PhoneNumber.phone_number,
+  email: Faker::Internet.email,
+  url: Faker::Internet.url
+}
+
+@customer = {
+  name: Faker::Company.name,
+  street_name: Faker::Address.street_name,
+  zip_city: Faker::Address.zip + ' ' + Faker::Address.city,
+  ein: Faker::Company.ein,
+  phone_number: Faker::PhoneNumber.phone_number,
+  email: Faker::Internet.email,
+  url: Faker::Internet.url
+}
+
+@invoice = {
+  no: '2/000042',
+  date: Date.today.to_s,
+  customer: '11032',
+  customer_ein: @customer[:ein]
+}
 
 @pdf = Prawn::Document.new
 @pdf.font 'Helvetica'
-
 @page_counter = 1
-def customer_info
-  # Defining the grid
-  # See http://prawn.majesticseacreature.com/manual.@pdf
-  @pdf.define_grid(columns: 5, rows: 8, gutter: 10)
 
-  @pdf.grid([0, 0], [1, 1]).bounding_box do
-    @pdf.text 'INVOICE', size: 18
-    @pdf.text 'Invoice No: 0001', align: :left
-    @pdf.text "Date: #{Time.now}", align: :left
-    @pdf.move_down 10
-
-    @pdf.text 'Attn: To whom it may concern '
-    @pdf.text 'Company Name'
-    @pdf.text 'Tel No: 1'
-    @pdf.text "Page #{@page_counter}"
+def issuer_info
+  @pdf.bounding_box([0, @pdf.cursor], width: 550) do
+    @pdf.text @issuer[:name], size: 20
+    @pdf.font_size 8
+    @pdf.text @issuer[:street_name]
+    @pdf.text @issuer[:zip_city]
+    @pdf.text @issuer[:ein]
+    @pdf.text @issuer[:phone_number]
+    @pdf.text @issuer[:email]
+    @pdf.text @issuer[:url]
     @pdf.move_down 10
   end
 end
 
-def issuer_info
-  @pdf.grid([0, 3.6], [1, 4]).bounding_box do
-    # Assign the path to your file name first to a local variable.
-    logo_path = File.expand_path('../../image/gravatar.jpg', __FILE__)
+def invoice_info
+  @saved_cursor = @pdf.cursor
+  @invoice[:page] = "#{@page_counter} / #{@total_pages}"
+  @page_counter += 1
+  info = @invoice.map { |k, v| [k.to_s, v] }
+  @pdf.table(info,
+             header: false,
+             width: 200,
+             cell_style: { size: 8, height: 12, padding: [0, 4, 0, 4] }) do |t|
+    t.columns(0).style borders: [:left, :top, :bottom]
+    t.columns(1).style borders: [:right, :top, :bottom]
+    t.columns(1).align = :right
+    t.row(0).style font_style: :bold
+  end
+  @pdf.move_down 10
+end
 
-    # Displays the image in your PDF. Dimensions are optional.
-    @pdf.image logo_path, width: 50, height: 50, position: :left
+def customer_info
+  @pdf.stroke_color 'FFFFFF'
+  @pdf.stroke_bounds
+  @pdf.stroke do
+    @pdf.stroke_color '000000'
+    @pdf.fill_color 'FFFFFF'
+    @pdf.fill_and_stroke_rounded_rectangle [250, @pdf.cursor + 105], 300, 90, 10
+  end
 
-    # Company address
-    @pdf.move_down 10
-    @pdf.text 'Awesomeness Ptd Ltd', align: :left
-    @pdf.text 'Address', align: :left
-    @pdf.text 'Street 1', align: :left
-    @pdf.text '40300 Shah Alam', align: :left
-    @pdf.text 'Selangor', align: :left
-    @pdf.text 'Tel No: 42', align: :left
-    @pdf.text 'Fax No: 42', align: :left
+  @pdf.bounding_box([260, @saved_cursor + 25], width: 300) do
+    @pdf.fill_color '000000'
+    @pdf.text @customer[:name], size: 16
+    @pdf.font_size 12
+    @pdf.text @customer[:street_name]
+    @pdf.text @customer[:zip_city]
+    @pdf.text @customer[:ein]
+    @pdf.text @customer[:phone_number]
+    @pdf.move_down 20
   end
 end
 
 def page_header
-  customer_info
   issuer_info
-
-  @pdf.text 'Details of Invoice', style: :bold_italic
-  @pdf.stroke_horizontal_rule
+  invoice_info
+  customer_info
 end
 
 def report_footer
@@ -120,21 +165,26 @@ end
 #
 item_count = 0
 loop do
-  @pdf.start_new_page unless item_count == 0
+  unless item_count == 0
+    @pdf.move_down 5
+    @pdf.bounding_box([400, @pdf.cursor], width: 150) do
+      @pdf.text 'Continue ...', size: 16, font_style: :bold
+    end
+    @pdf.start_new_page
+  end
   page_header
   @this_page_lines = calc_this_page_lines(item_count)
   page_items = @items[item_count..item_count + (@this_page_lines - 1)].insert(0, %w(Code Ref Description Units Price Total))
   item_count += @this_page_lines
-  page_items.push(['', '', 'TOTAL INVOICE', @sum_units, '', format_currency(@sum_total)]) if item_count >= TOTAL_ITEMS
-  @page_counter += 1
-  @pdf.table(page_items, header: true, width: 550, cell_style: { size: 8, height: 17, borders: [:left, :right] }) do |t|
+  # page_items.push(['', '', 'TOTAL INVOICE', @sum_units, '', format_currency(@sum_total)]) if item_count >= TOTAL_ITEMS
+  @pdf.table(page_items,
+             header: true,
+             width: 550,
+             cell_style: { size: 8, height: 12, borders: [:left, :right], padding: [0, 4, 0, 4] }) do |t|
     t.columns(3..5).align = :right
-    # t.cells.style do |cell|
-    #   cell.height = 12
-    #   cell.style[:size] = 10
-    # end
+    t.row(0).columns(3..5).align = :left
     t.row(0).style text_color: 'FFFFFF', background_color: '000000', borders: [:left, :right, :top]
-    t.rows(t.row_length - 1).style borders: [:left, :right, :bottom]
+    t.rows(-1).style borders: [:left, :right, :bottom]
   end
   break if item_count >= TOTAL_ITEMS
 end
